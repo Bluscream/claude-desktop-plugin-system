@@ -1,42 +1,53 @@
 # Claude Desktop Plugin System & Auto-Continue ⚡
 
-A lightweight, update-proof plugin framework and suite of enhancements for **Claude Desktop for Linux** (AppImage / Debian).
+A lightweight, update-proof, cross-platform plugin framework and enhancement suite for **Claude Desktop** on **Linux** (AppImage / Debian) and **Windows**.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Linux%20(AppImage%2FDeb)-orange.svg)
+![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-blueviolet.svg)
 
 ---
 
-## ⚡ One-Liner Install & Setup
+## ⚡ Quick Start & One-Liner Install
 
-Run this single command in your terminal to install the plugin loader, the Auto-Continue plugin, and patch your installed Claude Desktop AppImage:
-
+### 🐧 Linux (Bash)
+Run in terminal to install the loader, bundled plugins, and patch your AppImage:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/install.sh | bash
 ```
 
+### 🪟 Windows (PowerShell)
+Run in PowerShell to install into `%APPDATA%\Claude\plugins` and patch your installed Claude Desktop:
+```powershell
+irm https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/install.ps1 | iex
+```
+
 ---
 
-## 🔄 One-Liner Repatch (After Claude Desktop Updates)
+## 🔄 Repatching (After Claude Desktop Updates)
 
-Whenever you update or download a new version of `Claude_Desktop.AppImage`, run:
+When Claude Desktop updates, re-run the patcher to re-inject the 1-line hook into `app.asar`:
 
+### 🐧 Linux
 ```bash
 patch-claude-desktop.sh
 ```
-*(Or via remote one-liner without having the script in `$PATH`:)*
-```bash
-curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/patch-claude-desktop.sh | bash
+*(Or remote one-liner: `curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/patch-claude-desktop.sh | bash`)*
+
+### 🪟 Windows
+```powershell
+irm https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/patch-claude-desktop.ps1 | iex
 ```
 
 ---
 
-## 🌟 Highlights
+## 🌟 Highlights & Architecture
 
-* **Decoupled Architecture**: All your plugins and customization logic live cleanly in `~/.config/Claude/plugins/` (outside the app binary).
-* **Update-Proof (3-Second Repatching)**: When Claude Desktop updates, simply run the patch script. It injects a 1-line hook into `app.asar` without needing to recreate or re-write your plugins.
-* **Low CPU / Non-Blocking**: Throttled AppImage repacking using multi-core limits (`2` cores) and fast `zstd` compression with `nice` and `ionice` priority.
-* **Universal Plugin Loader**: Automatically loads and injects all `.js` scripts in `~/.config/Claude/plugins/` into Claude's WebContents upon page load.
+| Feature | Details |
+| :--- | :--- |
+| **Decoupled User Directory** | Plugins live in `~/.config/Claude/plugins/` (Linux) or `%APPDATA%\Claude\plugins\` (Windows). |
+| **Update-Proof** | Updating Claude Desktop never wipes your plugins or settings. Repatching takes 3 seconds. |
+| **Safe Draggable UI** | Protected against titlebar window-drag zones (`-webkit-app-region: no-drag`). |
+| **Non-Blocking / Low-Resource** | On Linux, throttles repacking to 2 CPU cores with `zstd` compression; on Windows, directly modifies `app.asar`. |
 
 ---
 
@@ -44,6 +55,7 @@ curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-sys
 
 ### 1. `auto-continue.js` — Auto-Continue Assistant
 * **Collapsible & Draggable UI**: Collapses into a sleek 32px fast-forward spark icon (`⏩`) with terracotta active glow; smoothly expands on hover or input focus.
+* **Titlebar Protected**: Clamped below the draggable window header so it never becomes unclickable.
 * **Position Persistence**: Drag anywhere on screen; coordinates are remembered across restarts.
 * **Custom Phrase Input**: Editable prompt phrase (e.g. `Continue`, `Go on`, `Please proceed to the next step`).
 * **Delay Selector**: Select between `2s`, `3s`, `5s`, `10s`, or `15s` before auto-continuing.
@@ -55,14 +67,16 @@ curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-sys
 
 ## 🛠️ Developing Custom Plugins
 
-To create a new plugin, simply create a new `.js` file inside `~/.config/Claude/plugins/`:
+To create a new plugin, simply create a new `.js` file inside your user plugins directory:
+* **Linux**: `~/.config/Claude/plugins/my-plugin.js`
+* **Windows**: `%APPDATA%\Claude\plugins\my-plugin.js`
 
 ```javascript
-// ~/.config/Claude/plugins/my-custom-plugin.js
+// Example Plugin
 (function() {
   console.log('[MyCustomPlugin] Loaded into Claude Desktop!');
   
-  // Access the DOM, add custom styles, or hook events
+  // Access the DOM, inject styles, or hook into chat events
   const style = document.createElement('style');
   style.textContent = `
     /* Your custom CSS enhancements */
@@ -71,7 +85,7 @@ To create a new plugin, simply create a new `.js` file inside `~/.config/Claude/
 })();
 ```
 
-Any `.js` file placed in `~/.config/Claude/plugins/` is automatically executed in the web context when Claude loads.
+Any `.js` file placed in the plugins directory is automatically loaded into the renderer when Claude starts.
 
 ---
 

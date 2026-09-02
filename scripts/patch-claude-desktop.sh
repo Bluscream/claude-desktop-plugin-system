@@ -52,8 +52,15 @@ else
     echo "[*] Injecting universal plugin loader hook into $(basename "$ENTRY_FILE")..."
     HOOK_CODE="$HOOK_FLAG
 try {
-  const _p = require('path').join(require('os').homedir(), '.config', 'Claude', 'plugins', 'loader.js');
-  if (require('fs').existsSync(_p)) { require(_p); }
+  const electron = require('electron');
+  const _path = require('path');
+  const _fs = require('fs');
+  const _userData = (electron.app ? electron.app.getPath('userData') : null) || 
+                    (process.platform === 'win32' 
+                      ? _path.join(process.env.APPDATA || '', 'Claude') 
+                      : _path.join(require('os').homedir(), '.config', 'Claude'));
+  const _loader = _path.join(_userData, 'plugins', 'loader.js');
+  if (_fs.existsSync(_loader)) { require(_loader); }
 } catch (_e) { console.error('[PluginLoaderHook] Error:', _e); }
 "
     TMP_ENTRY="$WORK_DIR/entry.tmp"

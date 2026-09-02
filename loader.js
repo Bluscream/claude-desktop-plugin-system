@@ -1,11 +1,16 @@
-// Claude Desktop Universal Plugin Loader
+// Claude Desktop Universal Plugin Loader (Cross-Platform)
+// Supports Linux, Windows, and macOS
 // Loaded via index.pre.js / index.js inside Electron Main Process
 
 const { app } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-const PLUGINS_DIR = path.join(app.getPath('home'), '.config', 'Claude', 'plugins');
+// Universal user directory:
+// Linux:   ~/.config/Claude/plugins
+// Windows: %APPDATA%\Claude\plugins
+// macOS:   ~/Library/Application Support/Claude/plugins
+const PLUGINS_DIR = path.join(app.getPath('userData'), 'plugins');
 
 function getPluginFiles() {
   if (!fs.existsSync(PLUGINS_DIR)) return [];
