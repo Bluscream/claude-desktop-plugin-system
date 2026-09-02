@@ -9,6 +9,7 @@
 
   // Configuration & State (Single unified storage object)
   const STORAGE_KEY = 'claude_auto_continue_settings';
+  const TITLEBAR_SAFE_TOP = 48; // Safe margin below Electron draggable header/titlebar
 
   const defaultSettings = {
     enabled: false,
@@ -44,22 +45,26 @@
   const container = document.createElement('div');
   container.id = PLUGIN_ID;
 
-  // Initial Position
+  // Initial Position (Ensuring top is clamped below titlebar drag zone)
   const pos = settings.position;
-  const initialTop = pos && typeof pos.top === 'number' ? `${pos.top}px` : 'auto';
+  const initialTop = pos && typeof pos.top === 'number' ? `${Math.max(TITLEBAR_SAFE_TOP, pos.top)}px` : 'auto';
   const initialLeft = pos && typeof pos.left === 'number' ? `${pos.left}px` : 'auto';
   const initialBottom = pos && typeof pos.top === 'number' ? 'auto' : '80px';
   const initialRight = pos && typeof pos.left === 'number' ? 'auto' : '24px';
 
   container.innerHTML = `
     <style>
+      #claude-auto-continue-plugin,
+      #claude-auto-continue-plugin * {
+        -webkit-app-region: no-drag !important; /* Never inherit window drag region */
+      }
       #claude-auto-continue-plugin {
         position: fixed;
         top: ${initialTop};
         left: ${initialLeft};
         bottom: ${initialBottom};
         right: ${initialRight};
-        z-index: 99999;
+        z-index: 999999;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 12px;
         color: #e5e5e5;
@@ -300,7 +305,7 @@
     cancelAutoContinue();
   });
 
-  // Draggable logic
+  // Draggable logic with Titlebar Safezone Protection
   let isDragging = false;
   let dragStartX = 0;
   let dragStartY = 0;
@@ -330,9 +335,9 @@
     let newX = elemStartX + dx;
     let newY = elemStartY + dy;
 
-    // Viewport boundaries
+    // Viewport & Titlebar Safe Zone boundaries
     newX = Math.max(10, Math.min(window.innerWidth - 60, newX));
-    newY = Math.max(10, Math.min(window.innerHeight - 60, newY));
+    newY = Math.max(TITLEBAR_SAFE_TOP, Math.min(window.innerHeight - 60, newY));
 
     container.style.left = `${newX}px`;
     container.style.top = `${newY}px`;
@@ -345,11 +350,11 @@
       isDragging = false;
       mainWidget.classList.remove('is-dragging');
 
-      // Save coordinates directly into settings
+      // Save coordinates safely clamped
       const rect = container.getBoundingClientRect();
       settings.position = {
         left: Math.round(rect.left),
-        top: Math.round(rect.top),
+        top: Math.round(Math.max(TITLEBAR_SAFE_TOP, rect.top)),
       };
       saveSettings();
     }
@@ -510,5 +515,5 @@
     attributeFilter: ['disabled', 'aria-label', 'class'],
   });
 
-  console.log('[AutoContinue] Unified storage plugin active.');
+  console.log('[AutoContinue] Protected titlebar safezone plugin active.');
 })();
