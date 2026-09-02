@@ -7,10 +7,34 @@ A lightweight, update-proof plugin framework and suite of enhancements for **Cla
 
 ---
 
+## ⚡ One-Liner Install & Setup
+
+Run this single command in your terminal to install the plugin loader, the Auto-Continue plugin, and patch your installed Claude Desktop AppImage:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/install.sh | bash
+```
+
+---
+
+## 🔄 One-Liner Repatch (After Claude Desktop Updates)
+
+Whenever you update or download a new version of `Claude_Desktop.AppImage`, run:
+
+```bash
+patch-claude-desktop.sh
+```
+*(Or via remote one-liner without having the script in `$PATH`:)*
+```bash
+curl -fsSL https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/main/scripts/patch-claude-desktop.sh | bash
+```
+
+---
+
 ## 🌟 Highlights
 
 * **Decoupled Architecture**: All your plugins and customization logic live cleanly in `~/.config/Claude/plugins/` (outside the app binary).
-* **Update-Proof (3-Second Repatching)**: When Claude Desktop updates, simply run `patch-claude-desktop.sh`. It injects a 1-line hook into `app.asar` without needing to recreate or re-write your plugins.
+* **Update-Proof (3-Second Repatching)**: When Claude Desktop updates, simply run the patch script. It injects a 1-line hook into `app.asar` without needing to recreate or re-write your plugins.
 * **Low CPU / Non-Blocking**: Throttled AppImage repacking using multi-core limits (`2` cores) and fast `zstd` compression with `nice` and `ionice` priority.
 * **Universal Plugin Loader**: Automatically loads and injects all `.js` scripts in `~/.config/Claude/plugins/` into Claude's WebContents upon page load.
 
@@ -26,33 +50,6 @@ A lightweight, update-proof plugin framework and suite of enhancements for **Cla
 * **Live Countdown Badge**: Displays `⏳ In 5s [Cancel]` giving you one-click abort before submission.
 * **Typing & Focus Abort Guard**: Automatically cancels if you click into the chatbox or start typing manually.
 * **Runaway Guard**: Caps consecutive automatic triggers to prevent loops.
-
----
-
-## 🚀 Installation & Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/Bluscream/claude-desktop-plugin-system.git
-cd claude-desktop-plugin-system
-
-# Run installer (copies loader & plugins to ~/.config/Claude/plugins and scripts to ~/.local/bin)
-chmod +x scripts/install.sh scripts/patch-claude-desktop.sh
-./scripts/install.sh
-```
-
----
-
-## 🔄 Repatching After Claude Desktop Updates
-
-When you download a new `Claude_Desktop.AppImage` (or install a package update):
-
-```bash
-patch-claude-desktop.sh
-```
-*(Or specify a custom path: `patch-claude-desktop.sh /path/to/Claude_Desktop.AppImage`)*
-
-The patcher runs in ~5 seconds, and all your existing plugins, custom phrases, and coordinates in `~/.config/Claude/plugins/` will immediately be active.
 
 ---
 
