@@ -12,6 +12,8 @@ $ErrorActionPreference = "Stop"
 # Auto-detect app.asar location if not specified
 if (-not $TargetAsar) {
     $possiblePaths = @(
+        "$env:ProgramFiles\WindowsApps\Claude_*\app\resources\app.asar",
+        "$env:ProgramData\Microsoft\Windows\WindowsApps\Claude_*\app\resources\app.asar",
         "$env:LOCALAPPDATA\AnthropicClaude\app-*\resources\app.asar",
         "$env:LOCALAPPDATA\Programs\Claude\resources\app.asar",
         "$env:ProgramFiles\Claude\resources\app.asar",
