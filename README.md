@@ -58,10 +58,22 @@ irm https://raw.githubusercontent.com/Bluscream/claude-desktop-plugin-system/mai
 * **Titlebar Protected**: Clamped below the draggable window header so it never becomes unclickable.
 * **Position Persistence**: Drag anywhere on screen; coordinates are remembered across restarts.
 * **Custom Phrase Input**: Editable prompt phrase (e.g. `Continue`, `Go on`, `Please proceed to the next step`).
-* **Delay Selector**: Select between `2s`, `3s`, `5s`, `10s`, or `15s` before auto-continuing.
+* **Delay Input**: Type any delay in seconds before auto-continuing — not limited to a fixed set of presets.
 * **Live Countdown Badge**: Displays `⏳ In 5s [Cancel]` giving you one-click abort before submission.
 * **Typing & Focus Abort Guard**: Automatically cancels if you click into the chatbox or start typing manually.
 * **Runaway Guard**: Caps consecutive automatic triggers to prevent loops.
+
+### 2. `auto-expand-commands.js` — Auto-Expand Command Groups
+* **Expands Multi-Command Steps**: Automatically opens the collapsed `Ran N commands` summary once `N` reaches a threshold (default `2`).
+* **Text-Anchored, Not Selector-Anchored**: Matches the visible label and walks up to the nearest real toggle, so build-generated class names changing does not break it.
+* **Never Fights You**: Each toggle is clicked at most once; collapsing one by hand keeps it collapsed.
+* **Configurable**: `localStorage` key `claude_auto_expand_settings`, or `claudeAutoExpand.set({ minCommands: 3 })` from the console.
+
+### 3. `version-spoof.main.js` — Client Version Override *(main process)*
+* **Overrides `app.getVersion()`**: Changes the `anthropic-client-version` header, the OAuth authorize headers, the value passed to spawned sub-processes, and the client-side `availableInVersion` feature gates.
+* **Disabled By Default**: Writes `version-spoof.config.json` seeded with your real version on first run.
+* **Validated**: Refuses anything that is not a dotted numeric version; the genuine value stays available via `app.getRealVersion()`.
+* **Does Not Unlock Models**: Model availability is a capability check, not a version comparison — the client greys out any model ID absent from the Claude Code runtime compiled into the app. No version string can conjure a model the binary cannot name.
 
 ---
 
@@ -86,6 +98,28 @@ To create a new plugin, simply create a new `.js` file inside your user plugins 
 ```
 
 Any `.js` file placed in the plugins directory is automatically loaded into the renderer when Claude starts.
+
+### Main-process plugins (`*.main.js`)
+
+Renderer plugins can reach the DOM but not Electron itself. A plugin named
+`*.main.js` is instead `require()`d **once, in the Electron main process**,
+before the app's own code runs — use it for anything touching the `app` object,
+sessions, windows, or outbound network headers.
+
+```javascript
+// ~/.config/Claude/plugins/my-thing.main.js
+const { app } = require('electron');
+console.log('[MyThing] main process, version', app.getVersion());
+module.exports = {};
+```
+
+| Suffix | Runs in | Use for |
+| :--- | :--- | :--- |
+| `*.main.js` | Electron main process | Electron APIs, headers, app lifecycle |
+| `*.js` | Renderer (per page) | DOM, styles, UI |
+
+Main plugins load first. A failure in one is logged and isolated, so it cannot
+prevent the others — or the renderer injection — from loading.
 
 ---
 
