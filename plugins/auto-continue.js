@@ -197,19 +197,39 @@
         border-color: #d97757;
         width: 120px;
       }
-      .ac-delay-select {
+      .ac-delay-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 2px;
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.12);
-        color: #d1d1d1;
         border-radius: 6px;
-        padding: 2px 4px;
-        font-size: 11px;
-        cursor: pointer;
-        outline: none;
+        padding: 2px 5px 2px 6px;
+        transition: border-color 0.15s;
       }
-      .ac-delay-select option {
-        background: #202022;
+      .ac-delay-wrapper:focus-within {
+        border-color: #d97757;
+      }
+      .ac-delay-input {
+        background: transparent;
+        border: none;
         color: #e5e5e5;
+        font-size: 11px;
+        width: 28px;
+        outline: none;
+        text-align: right;
+        -moz-appearance: textfield;
+      }
+      .ac-delay-input::-webkit-outer-spin-button,
+      .ac-delay-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .ac-delay-unit {
+        color: #a1a1aa;
+        font-size: 11px;
+        font-weight: 500;
+        user-select: none;
       }
       .ac-countdown-badge {
         display: none;
@@ -249,13 +269,10 @@
           <input type="checkbox" class="ac-checkbox" id="ac-enabled-check" ${settings.enabled ? 'checked' : ''} title="Auto-Continue (Enable/Disable)">
         </label>
         <input type="text" class="ac-phrase-input" id="ac-phrase-input" value="${settings.phrase}" title="Text to send automatically" placeholder="Phrase...">
-        <select class="ac-delay-select" id="ac-delay-select" title="Delay before auto-continuing">
-          <option value="2" ${settings.delaySeconds === 2 ? 'selected' : ''}>2s</option>
-          <option value="3" ${settings.delaySeconds === 3 ? 'selected' : ''}>3s</option>
-          <option value="5" ${settings.delaySeconds === 5 ? 'selected' : ''}>5s</option>
-          <option value="10" ${settings.delaySeconds === 10 ? 'selected' : ''}>10s</option>
-          <option value="15" ${settings.delaySeconds === 15 ? 'selected' : ''}>15s</option>
-        </select>
+        <div class="ac-delay-wrapper" title="Delay in seconds before auto-continuing">
+          <input type="number" class="ac-delay-input" id="ac-delay-input" value="${settings.delaySeconds}" min="1" max="300" step="1">
+          <span class="ac-delay-unit">s</span>
+        </div>
         <div class="ac-countdown-badge" id="ac-countdown-badge">
           <span id="ac-countdown-text">In 5s</span>
           <button class="ac-cancel-btn" id="ac-cancel-btn" title="Cancel this auto-continue">Cancel</button>
@@ -270,14 +287,16 @@
   const dragHandle = document.getElementById('ac-drag-handle');
   const checkEl = document.getElementById('ac-enabled-check');
   const phraseEl = document.getElementById('ac-phrase-input');
-  const delayEl = document.getElementById('ac-delay-select');
+  const delayEl = document.getElementById('ac-delay-input');
   const badgeEl = document.getElementById('ac-countdown-badge');
   const countTextEl = document.getElementById('ac-countdown-text');
   const cancelBtn = document.getElementById('ac-cancel-btn');
 
-  // Keep expanded while typing in phrase input
+  // Keep expanded while typing in inputs
   phraseEl.addEventListener('focus', () => mainWidget.classList.add('ac-expanded'));
   phraseEl.addEventListener('blur', () => mainWidget.classList.remove('ac-expanded'));
+  delayEl.addEventListener('focus', () => mainWidget.classList.add('ac-expanded'));
+  delayEl.addEventListener('blur', () => mainWidget.classList.remove('ac-expanded'));
 
   checkEl.addEventListener('change', (e) => {
     settings.enabled = e.target.checked;
@@ -295,9 +314,12 @@
     saveSettings();
   });
 
-  delayEl.addEventListener('change', (e) => {
-    settings.delaySeconds = parseInt(e.target.value, 10) || 5;
-    saveSettings();
+  delayEl.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val > 0) {
+      settings.delaySeconds = val;
+      saveSettings();
+    }
   });
 
   cancelBtn.addEventListener('click', (e) => {
